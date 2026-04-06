@@ -1,0 +1,374 @@
+/* ---------- Typography: Dovahkiin's Scriptorium ----------
+   Fraunces (display): optical-size variable serif for brand + section markers.
+   IBM Plex Sans (body/UI): technical but warm, far from generic Inter.
+   IBM Plex Mono (data): filenames, hex, JSON, form refs. */
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,500..700,30..100,0..1&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap");
+
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ---------- Theme tokens ---------- */
+@theme {
+  --font-sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  --font-display: "Fraunces", "Book Antiqua", Palatino, Georgia, serif;
+
+  /* Typography scale — bumped one step up from Tailwind defaults so the
+     editor reads comfortably in a dense modding tool. */
+  --text-xs: 0.8125rem;        /* 13px (was 12) */
+  --text-xs--line-height: 1.15rem;
+  --text-sm: 0.9375rem;        /* 15px (was 14) */
+  --text-sm--line-height: 1.35rem;
+  --text-base: 1.0625rem;      /* 17px (was 16) */
+  --text-base--line-height: 1.55rem;
+  --text-lg: 1.1875rem;        /* 19px (was 18) */
+  --text-lg--line-height: 1.65rem;
+  --text-xl: 1.375rem;         /* 22px (was 20) */
+  --text-2xl: 1.6875rem;       /* 27px (was 24) */
+
+  /* Condition-group logic colors. Distinct from event palette + primary
+     so the AND/OR gutters read as structural, not semantic. */
+  --color-logic-and: oklch(0.62 0.13 222);   /* muted slate-blue */
+  --color-logic-or: oklch(0.68 0.18 45);     /* warm amber-orange */
+
+  /* Event color palette — locked per plan D18. */
+  --color-event-combat: oklch(0.637 0.237 25.331);        /* red-500 */
+  --color-event-hit: oklch(0.705 0.213 47.604);           /* orange-500 */
+  --color-event-death: oklch(0.627 0.265 303.9);          /* purple-500 */
+  --color-event-bleedout: oklch(0.586 0.253 17.585);      /* rose-600 */
+  --color-event-spell: oklch(0.715 0.143 215.221);        /* cyan-500 */
+  --color-event-bow: oklch(0.768 0.233 130.85);           /* lime-500 */
+  --color-event-location: oklch(0.696 0.17 162.48);       /* emerald-500 */
+  --color-event-level: oklch(0.646 0.222 41.116);         /* amber-600 */
+  --color-event-skill: oklch(0.623 0.214 259.815);        /* indigo-500 */
+  --color-event-fall: oklch(0.554 0.046 257.417);         /* slate-500 */
+  --color-event-animation: oklch(0.708 0.148 85.87);      /* yellow-500 */
+  --color-event-periodic: oklch(0.685 0.169 237.323);     /* sky-500 */
+}
+
+/* Light theme (parchment) */
+:root {
+  --background: oklch(0.97 0.012 78);              /* warm parchment */
+  --foreground: oklch(0.18 0.015 60);              /* ink */
+
+  --card: oklch(0.99 0.006 78);
+  --card-foreground: oklch(0.18 0.015 60);
+
+  --popover: oklch(0.99 0.006 78);
+  --popover-foreground: oklch(0.18 0.015 60);
+
+  --primary: oklch(0.62 0.145 65);                 /* oxidized bronze */
+  --primary-foreground: oklch(0.98 0.01 78);
+
+  --secondary: oklch(0.94 0.01 78);
+  --secondary-foreground: oklch(0.22 0.015 60);
+
+  --muted: oklch(0.94 0.008 78);
+  --muted-foreground: oklch(0.48 0.015 60);
+
+  --accent: oklch(0.9 0.025 75);
+  --accent-foreground: oklch(0.22 0.02 65);
+
+  --destructive: oklch(0.54 0.195 27);
+  --destructive-foreground: oklch(0.98 0.01 27);
+
+  --success: oklch(0.6 0.15 145);
+  --warning: oklch(0.7 0.16 78);
+
+  --border: oklch(0.86 0.015 75);
+  --input: oklch(0.9 0.012 78);
+  --ring: oklch(0.62 0.145 65);
+
+  --radius: 0.375rem;
+
+  /* Ambient grain overlay opacity */
+  --grain-opacity: 0.035;
+}
+
+/* Dark theme (dragon-amber on weathered slate) */
+.dark {
+  --background: oklch(0.152 0.012 55);             /* warm slate, not cool grey */
+  --foreground: oklch(0.94 0.012 78);              /* warm off-white */
+
+  --card: oklch(0.195 0.014 55);
+  --card-foreground: oklch(0.94 0.012 78);
+
+  --popover: oklch(0.195 0.014 55);
+  --popover-foreground: oklch(0.94 0.012 78);
+
+  /* Dragon amber — warmer than yellow-gold, toward oxidized bronze */
+  --primary: oklch(0.74 0.155 65);
+  --primary-foreground: oklch(0.14 0.02 55);
+
+  --secondary: oklch(0.25 0.014 55);
+  --secondary-foreground: oklch(0.94 0.012 78);
+
+  --muted: oklch(0.23 0.014 55);
+  --muted-foreground: oklch(0.63 0.018 60);
+
+  --accent: oklch(0.32 0.05 65);
+  --accent-foreground: oklch(0.95 0.02 78);
+
+  --destructive: oklch(0.63 0.215 27);
+  --destructive-foreground: oklch(0.98 0.01 27);
+
+  --success: oklch(0.68 0.155 145);
+  --warning: oklch(0.78 0.155 78);
+
+  --border: oklch(0.28 0.018 55);
+  --input: oklch(0.24 0.016 55);
+  --ring: oklch(0.74 0.155 65);
+
+  --grain-opacity: 0.045;
+}
+
+/* Neutral-blue alternative theme — full palette shift from warm amber
+   (hue 55-78) to cool slate (hue 230-250). Overrides enough surfaces
+   that switching is actually visible, not just a button-color swap. */
+.theme-neutral {
+  --background: oklch(0.97 0.008 240);
+  --foreground: oklch(0.18 0.012 240);
+
+  --card: oklch(0.99 0.005 240);
+  --card-foreground: oklch(0.18 0.012 240);
+
+  --popover: oklch(0.99 0.005 240);
+  --popover-foreground: oklch(0.18 0.012 240);
+
+  --primary: oklch(0.56 0.17 255);
+  --primary-foreground: oklch(0.98 0.01 255);
+
+  --secondary: oklch(0.94 0.008 240);
+  --secondary-foreground: oklch(0.22 0.012 240);
+
+  --muted: oklch(0.94 0.006 240);
+  --muted-foreground: oklch(0.48 0.012 240);
+
+  --accent: oklch(0.9 0.025 240);
+  --accent-foreground: oklch(0.22 0.02 240);
+
+  --border: oklch(0.86 0.012 240);
+  --input: oklch(0.9 0.01 240);
+  --ring: oklch(0.56 0.17 255);
+}
+.dark.theme-neutral {
+  --background: oklch(0.152 0.015 240);
+  --foreground: oklch(0.94 0.01 240);
+
+  --card: oklch(0.195 0.017 240);
+  --card-foreground: oklch(0.94 0.01 240);
+
+  --popover: oklch(0.195 0.017 240);
+  --popover-foreground: oklch(0.94 0.01 240);
+
+  --primary: oklch(0.7 0.16 245);
+  --primary-foreground: oklch(0.14 0.02 245);
+
+  --secondary: oklch(0.25 0.017 240);
+  --secondary-foreground: oklch(0.94 0.01 240);
+
+  --muted: oklch(0.23 0.017 240);
+  --muted-foreground: oklch(0.63 0.02 240);
+
+  --accent: oklch(0.32 0.05 240);
+  --accent-foreground: oklch(0.95 0.02 240);
+
+  --border: oklch(0.28 0.022 240);
+  --input: oklch(0.24 0.02 240);
+  --ring: oklch(0.7 0.16 245);
+}
+
+/* Bridge semantic tokens into Tailwind's color namespace */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* ---------- Density scale (plan D) ---------- */
+:root,
+.density-cozy {
+  --density-row-h: 36px;
+  --density-gap: 10px;
+  --density-padding: 10px 12px;
+}
+.density-comfortable {
+  --density-row-h: 44px;
+  --density-gap: 14px;
+  --density-padding: 12px 16px;
+}
+.density-compact {
+  --density-row-h: 28px;
+  --density-gap: 6px;
+  --density-padding: 6px 10px;
+}
+
+/* ---------- Base element styles ---------- */
+* {
+  border-color: var(--border);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--background);
+  color: var(--foreground);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "ss01", "cv05";          /* Plex stylistic sets */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ---------- Themed scrollbars ---------- */
+/* Thin track tinted to the border token, thumb tinted to muted-foreground.
+   Widens + brightens on hover. Apply to everything by default; native
+   whites look jarring on our warm-slate surfaces. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklch, var(--muted-foreground) 35%, transparent) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: color-mix(in oklch, var(--muted-foreground) 30%, transparent);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-radius: 6px;
+  transition: background-color 120ms;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklch, var(--primary) 55%, transparent);
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Ambient grain overlay — subtle texture to avoid flat dark surfaces.
+   SVG inline; scales forever, no HTTP cost. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- Typography utilities ---------- */
+/* Fraunces @ display opticals: wedge terminals, softened slightly, disciplined.
+   lining-nums keeps numerals cap-height (default Fraunces uses oldstyle figures
+   which sit inconsistently against letters like "Pass 1"). */
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-variation-settings: "opsz" 96, "SOFT" 40, "WONK" 0;
+  font-variant-numeric: lining-nums;
+}
+
+.mono,
+code,
+kbd,
+pre,
+samp,
+.font-mono {
+  font-family: var(--font-mono);
+  font-feature-settings: "zero";                   /* slashed zero */
+}
+
+/* ---------- Iron-rule divider ----------
+   Double-line etched feel, used under section headers. */
+.iron-rule {
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 0 color-mix(in oklch, var(--border) 60%, transparent);
+  padding-bottom: 2px;
+}
+
+/* ---------- Skyrim-style triangle glyph ---------- */
+.tri-glyph::before {
+  content: "◆";
+  display: inline-block;
+  margin-right: 0.45em;
+  font-size: 0.6em;
+  transform: translateY(-0.1em);
+  color: var(--primary);
+  opacity: 0.8;
+}
+
+/* ---------- Focus ring ---------- */
+*:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ---------- Staggered entry animation ---------- */
+@keyframes scriptorium-rise {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.rise {
+  animation: scriptorium-rise 260ms ease-out both;
+}
+
+.rise-stagger > * {
+  animation: scriptorium-rise 260ms ease-out both;
+  animation-delay: calc(var(--i, 0) * 28ms);
+}
+
+/* ---------- Hero gradient wash ---------- */
+.hero-wash {
+  background:
+    radial-gradient(
+      ellipse 80% 120% at 10% 0%,
+      color-mix(in oklch, var(--primary) 8%, transparent) 0%,
+      transparent 60%
+    ),
+    var(--background);
+}
