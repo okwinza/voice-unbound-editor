@@ -236,6 +236,7 @@ export const CONDITION_TYPES = [
   "HasSpell",
   "IsSlotEmpty",
   "LocationHasKeyword",
+  "PlayerName",
   "ConditionGroup",
 ] as const;
 
@@ -476,6 +477,7 @@ export const CANONICAL_FIELD_ORDER = [
   "keyword",       // HasActiveEffect / LocationHasKeyword
   "formID",        // HasActiveEffect / IsRace / HasPerk / HasSpell
   "race",          // IsRace
+  "name",          // PlayerName
   "slots",         // IsSlotEmpty
   // Recursive: VoiceLine.conditions AND ConditionGroup.conditions both end last.
   "conditions",

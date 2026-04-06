@@ -37,6 +37,10 @@ const CONDITION_META: Record<ConditionType, { summary: string }> = {
     summary:
       "Passes when the player's current BGSLocation has the given keyword (e.g. LocTypeDungeon).",
   },
+  PlayerName: {
+    summary:
+      "Matches the player's display name (set at character creation). Exact case-sensitive compare.",
+  },
   ConditionGroup: {
     summary:
       "Recursive AND/OR combinator. Nests child conditions arbitrarily deep. Supports negated (NAND/NOR).",

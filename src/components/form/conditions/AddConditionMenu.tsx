@@ -24,6 +24,7 @@ const TYPE_DESCRIPTIONS: Record<ConditionType, string> = {
   HasSpell: "player knows a spell",
   IsSlotEmpty: "armor slot(s) empty",
   LocationHasKeyword: "location keyword check",
+  PlayerName: "match character name",
   ConditionGroup: "nest with AND / OR logic",
 };
 
@@ -39,7 +40,7 @@ const MENU_GROUPS: MenuGroup[] = [
   },
   {
     label: "Character",
-    types: ["IsFemale", "IsRace"],
+    types: ["IsFemale", "IsRace", "PlayerName"],
   },
   {
     label: "Knowledge",

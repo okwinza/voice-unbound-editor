@@ -486,6 +486,23 @@ function Editor({
         </div>
       );
 
+    case "PlayerName":
+      return (
+        <div className="w-full max-w-xs" data-testid={testId}>
+          <Input
+            value={condition.name}
+            onChange={(e) =>
+              onChange({ ...condition, name: e.target.value })
+            }
+            placeholder="Dragonborn"
+            data-testid={`${testId}-name`}
+          />
+          <p className="mt-1 text-[11px] text-muted-foreground/60">
+            Exact character name (case-sensitive)
+          </p>
+        </div>
+      );
+
     case "ConditionGroup":
       // Groups are rendered by ConditionGroupRow — unreachable here.
       return null;

@@ -129,6 +129,12 @@ const LocationHasKeywordConditionSchema = z.object({
   keyword: z.string().min(1),
 });
 
+const PlayerNameConditionSchema = z.object({
+  type: z.literal("PlayerName"),
+  ...conditionBaseShape,
+  name: z.string().min(1),
+});
+
 // ConditionGroup is recursive. Zod needs a lazy ref for that.
 type ConditionInput =
   | z.infer<typeof ActorValueConditionSchema>
@@ -144,6 +150,7 @@ type ConditionInput =
   | z.infer<typeof HasSpellConditionSchema>
   | z.infer<typeof IsSlotEmptyConditionSchema>
   | z.infer<typeof LocationHasKeywordConditionSchema>
+  | z.infer<typeof PlayerNameConditionSchema>
   | {
       type: "ConditionGroup";
       negated?: boolean;
@@ -167,6 +174,7 @@ export const ConditionSchema: z.ZodType<ConditionInput> = z.lazy(() =>
     HasSpellConditionSchema,
     IsSlotEmptyConditionSchema,
     LocationHasKeywordConditionSchema,
+    PlayerNameConditionSchema,
     z.object({
       type: z.literal("ConditionGroup"),
       ...conditionBaseShape,
@@ -267,6 +275,8 @@ export function emptyCondition(type: (typeof CONDITION_TYPES)[number]): Conditio
       return { type, slots: ["body"] };
     case "LocationHasKeyword":
       return { type, keyword: "LocTypeDungeon" };
+    case "PlayerName":
+      return { type, name: "" };
     case "ConditionGroup":
       return { type, logic: "AND", conditions: [] };
   }
