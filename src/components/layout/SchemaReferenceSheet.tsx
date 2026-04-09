@@ -41,6 +41,14 @@ const CONDITION_META: Record<ConditionType, { summary: string }> = {
     summary:
       "Matches the player's display name (set at character creation). Exact case-sensitive compare.",
   },
+  NPCsNearby: {
+    summary:
+      "Counts living, loaded NPCs within a radius of the player. Supports all comparison operators (>=, ==, <, etc.).",
+  },
+  IsLocation: {
+    summary:
+      "Matches the player's current BGSLocation by editor ID or form reference. Traverses the parent-location chain.",
+  },
   ConditionGroup: {
     summary:
       "Recursive AND/OR combinator. Nests child conditions arbitrarily deep. Supports negated (NAND/NOR).",

@@ -237,6 +237,8 @@ export const CONDITION_TYPES = [
   "IsSlotEmpty",
   "LocationHasKeyword",
   "PlayerName",
+  "NPCsNearby",
+  "IsLocation",
   "ConditionGroup",
 ] as const;
 
@@ -258,6 +260,25 @@ export const ACTOR_VALUE_COMPARISONS = [
 ] as const;
 
 export type ActorValueComparison = (typeof ACTOR_VALUE_COMPARISONS)[number];
+
+// ---------- Simple comparisons (NPCsNearby) ----------
+
+/**
+ * Non-percent subset of CompareOp. NPCsNearby compares raw integer counts,
+ * so percent operators have no meaning. Named forms match the plugin's
+ * ParseCompareOp named branch; the editor normalises symbolic (">=") to
+ * named ("greaterOrEqual") on save.
+ */
+export const SIMPLE_COMPARISONS = [
+  "below",
+  "above",
+  "equals",
+  "notEquals",
+  "greaterOrEqual",
+  "lessOrEqual",
+] as const;
+
+export type SimpleComparison = (typeof SIMPLE_COMPARISONS)[number];
 
 export const CONDITION_GROUP_LOGICS = ["AND", "OR"] as const;
 
@@ -404,6 +425,40 @@ export const COMMON_LOCATION_KEYWORDS = [
   "LocTypeCave",
 ] as const;
 
+// ---------- Common location editor IDs (IsLocation autocomplete) ----------
+
+/**
+ * Vanilla Skyrim BGSLocation editor IDs. The plugin resolves via
+ * GetFormEditorID and traverses the parent-location chain, so matching
+ * a hold covers all child locations. Modded locations work too —
+ * this list is for autocomplete convenience only.
+ */
+export const COMMON_LOCATION_EDITOR_IDS = [
+  "WhiterunLocation",
+  "SolitudeLocation",
+  "WindhelmLocation",
+  "RiftenLocation",
+  "MarkarthLocation",
+  "FalkreathLocation",
+  "MorthalLocation",
+  "DawnstarLocation",
+  "WinterholdLocation",
+  "WhiterunHoldLocation",
+  "HaafingarHoldLocation",
+  "EastmarchHoldLocation",
+  "TheReachHoldLocation",
+  "TheRiftHoldLocation",
+  "ThePaleHoldLocation",
+  "FalkreathHoldLocation",
+  "HjaalmarchHoldLocation",
+  "WinterholdHoldLocation",
+  "RiverwoodLocation",
+  "HelgenLocation",
+  "IvarsteadLocation",
+  "SovngardeLocation",
+  "SolstheimLocation",
+] as const;
+
 // ---------- Common magic-effect keywords ----------
 
 /**
@@ -479,6 +534,9 @@ export const CANONICAL_FIELD_ORDER = [
   "race",          // IsRace
   "name",          // PlayerName
   "slots",         // IsSlotEmpty
+  "location",      // IsLocation
+  "radius",        // NPCsNearby
+  "count",         // NPCsNearby
   // Recursive: VoiceLine.conditions AND ConditionGroup.conditions both end last.
   "conditions",
 ] as const;

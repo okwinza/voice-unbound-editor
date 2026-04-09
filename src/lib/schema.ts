@@ -16,6 +16,7 @@ import {
   KNOWN_EVENTS,
   CONDITION_TYPES,
   ACTOR_VALUE_COMPARISONS,
+  SIMPLE_COMPARISONS,
   ARMOR_SLOTS,
   CONDITION_GROUP_LOGICS,
 } from "./enums";
@@ -135,6 +136,26 @@ const PlayerNameConditionSchema = z.object({
   name: z.string().min(1),
 });
 
+const NPCsNearbyConditionSchema = z.object({
+  type: z.literal("NPCsNearby"),
+  ...conditionBaseShape,
+  radius: z.number().min(0).optional(),
+  comparison: z.enum(SIMPLE_COMPARISONS).optional(),
+  count: z.number().int().min(0).optional(),
+});
+
+const IsLocationConditionSchema = z
+  .object({
+    type: z.literal("IsLocation"),
+    ...conditionBaseShape,
+    location: z.string().optional(),
+    formID: z.string().optional(),
+  })
+  .refine((v) => !!v.location || !!v.formID, {
+    message: "IsLocation requires either `location` or `formID`",
+    path: ["location"],
+  });
+
 // ConditionGroup is recursive. Zod needs a lazy ref for that.
 type ConditionInput =
   | z.infer<typeof ActorValueConditionSchema>
@@ -151,6 +172,8 @@ type ConditionInput =
   | z.infer<typeof IsSlotEmptyConditionSchema>
   | z.infer<typeof LocationHasKeywordConditionSchema>
   | z.infer<typeof PlayerNameConditionSchema>
+  | z.infer<typeof NPCsNearbyConditionSchema>
+  | z.infer<typeof IsLocationConditionSchema>
   | {
       type: "ConditionGroup";
       negated?: boolean;
@@ -175,6 +198,8 @@ export const ConditionSchema: z.ZodType<ConditionInput> = z.lazy(() =>
     IsSlotEmptyConditionSchema,
     LocationHasKeywordConditionSchema,
     PlayerNameConditionSchema,
+    NPCsNearbyConditionSchema,
+    IsLocationConditionSchema,
     z.object({
       type: z.literal("ConditionGroup"),
       ...conditionBaseShape,
@@ -277,6 +302,10 @@ export function emptyCondition(type: (typeof CONDITION_TYPES)[number]): Conditio
       return { type, keyword: "LocTypeDungeon" };
     case "PlayerName":
       return { type, name: "" };
+    case "NPCsNearby":
+      return { type, radius: 2048, comparison: "greaterOrEqual", count: 1 };
+    case "IsLocation":
+      return { type, location: "WhiterunLocation" };
     case "ConditionGroup":
       return { type, logic: "AND", conditions: [] };
   }

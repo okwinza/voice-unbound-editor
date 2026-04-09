@@ -25,6 +25,8 @@ const TYPE_DESCRIPTIONS: Record<ConditionType, string> = {
   IsSlotEmpty: "armor slot(s) empty",
   LocationHasKeyword: "location keyword check",
   PlayerName: "match character name",
+  NPCsNearby: "living NPCs within radius",
+  IsLocation: "match named location / formID",
   ConditionGroup: "nest with AND / OR logic",
 };
 
@@ -48,7 +50,7 @@ const MENU_GROUPS: MenuGroup[] = [
   },
   {
     label: "World",
-    types: ["ActorValue", "IsSlotEmpty", "LocationHasKeyword"],
+    types: ["ActorValue", "IsSlotEmpty", "LocationHasKeyword", "IsLocation", "NPCsNearby"],
   },
   {
     label: "Logic",

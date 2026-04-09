@@ -63,6 +63,22 @@ describe("VoiceLineSchema", () => {
     expect(result.success).toBe(false);
   });
 
+  it("rejects IsLocation with neither location nor formID", () => {
+    const result = VoiceLineSchema.safeParse({
+      event: "TESHitEvent",
+      conditions: [{ type: "IsLocation" }],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts IsLocation with location only", () => {
+    const result = VoiceLineSchema.safeParse({
+      event: "TESHitEvent",
+      conditions: [{ type: "IsLocation", location: "WhiterunLocation" }],
+    });
+    expect(result.success).toBe(true);
+  });
+
   it("accepts HasActiveEffect with keyword only", () => {
     const result = VoiceLineSchema.safeParse({
       event: "TESHitEvent",
@@ -161,14 +177,23 @@ describe("factories", () => {
   });
 
   it("emptyCondition produces schema-valid nodes for every type", () => {
+    // HasPerk, HasSpell, PlayerName are excluded — their factories return
+    // intentionally empty placeholders (formID:"", name:"") that fail min(1)
+    // validation until the user fills them in.
     for (const type of [
       "ActorValue",
       "IsInCombat",
       "IsWeaponDrawn",
       "IsSneaking",
+      "IsSleeping",
+      "IsSwimming",
+      "IsFemale",
+      "IsRace",
       "HasActiveEffect",
       "IsSlotEmpty",
       "LocationHasKeyword",
+      "NPCsNearby",
+      "IsLocation",
       "ConditionGroup",
     ] as const) {
       const cond = emptyCondition(type);

@@ -5,8 +5,10 @@ import { Select } from "@/components/ui/Select";
 import { BodySlotPicker } from "./BodySlotPicker";
 import {
   ACTOR_VALUE_COMPARISONS,
+  SIMPLE_COMPARISONS,
   COMMON_ACTOR_VALUES,
   COMMON_LOCATION_KEYWORDS,
+  COMMON_LOCATION_EDITOR_IDS,
   COMMON_MAGIC_EFFECT_KEYWORDS,
   COMMON_RACE_EDITOR_IDS,
   type ArmorSlot,
@@ -502,6 +504,132 @@ function Editor({
           </p>
         </div>
       );
+
+    case "IsLocation": {
+      const mode: "location" | "formID" =
+        condition.formID && condition.formID.length > 0 ? "formID" : "location";
+      return (
+        <div className="space-y-1.5" data-testid={testId}>
+          <div
+            className="inline-flex h-7 rounded-sm border border-border bg-input p-[2px]"
+            role="radiogroup"
+            aria-label="Location ref mode"
+          >
+            {(["location", "formID"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                role="radio"
+                aria-checked={mode === m}
+                onClick={() => {
+                  if (m === "location") {
+                    onChange({ type: "IsLocation", location: condition.location || "WhiterunLocation" });
+                  } else {
+                    onChange({ type: "IsLocation", formID: condition.formID || "" });
+                  }
+                }}
+                className={cn(
+                  "mono cursor-pointer rounded-sm px-2 text-[11px] transition-colors",
+                  mode === m
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+                data-testid={`${testId}-mode-${m}`}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+          {mode === "location" ? (
+            <div className="w-full max-w-xs">
+              <Input
+                list={`${testId}-locations`}
+                value={condition.location ?? ""}
+                onChange={(e) =>
+                  onChange({ type: "IsLocation", location: e.target.value })
+                }
+                placeholder="WhiterunLocation"
+                data-testid={`${testId}-location`}
+              />
+              <datalist id={`${testId}-locations`}>
+                {COMMON_LOCATION_EDITOR_IDS.map((l) => (
+                  <option key={l} value={l} />
+                ))}
+              </datalist>
+            </div>
+          ) : (
+            <div className="w-full max-w-xs">
+              <Input
+                value={condition.formID ?? ""}
+                onChange={(e) =>
+                  onChange({ type: "IsLocation", formID: e.target.value })
+                }
+                placeholder="Skyrim.esm|0x00018A56"
+                data-testid={`${testId}-formid`}
+                className="mono"
+              />
+            </div>
+          )}
+          <p className="mt-1 text-[11px] text-muted-foreground/60">
+            Traverses parent chain — matching a hold covers all locations within it.
+          </p>
+        </div>
+      );
+    }
+
+    case "NPCsNearby": {
+      return (
+        <div className="flex flex-wrap items-center gap-1.5" data-testid={testId}>
+          <div className="relative w-28">
+            <Input
+              type="number"
+              value={Number.isFinite(condition.radius) ? condition.radius : 2048}
+              onChange={(e) =>
+                onChange({ ...condition, radius: parseFloat(e.target.value) || 0 })
+              }
+              step={256}
+              min={0}
+              className="pr-9"
+              data-testid={`${testId}-radius`}
+            />
+            <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[11px] text-muted-foreground">
+              units
+            </span>
+          </div>
+          <div className="w-24">
+            <Select
+              value={condition.comparison ?? "greaterOrEqual"}
+              onChange={(e) =>
+                onChange({
+                  ...condition,
+                  comparison: e.target.value as typeof condition.comparison,
+                })
+              }
+              data-testid={`${testId}-comparison`}
+            >
+              {SIMPLE_COMPARISONS.map((c) => (
+                <option key={c} value={c}>
+                  {COMPARISON_LABELS[c]}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="w-20">
+            <Input
+              type="number"
+              value={Number.isFinite(condition.count) ? condition.count : 1}
+              onChange={(e) =>
+                onChange({ ...condition, count: parseInt(e.target.value, 10) || 0 })
+              }
+              step={1}
+              min={0}
+              data-testid={`${testId}-count`}
+            />
+          </div>
+          <span className="text-[11px] text-muted-foreground">NPCs nearby</span>
+        </div>
+      );
+    }
 
     case "ConditionGroup":
       // Groups are rendered by ConditionGroupRow — unreachable here.
