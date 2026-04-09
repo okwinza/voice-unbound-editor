@@ -72,6 +72,11 @@ const IsSleepingConditionSchema = z.object({
   ...conditionBaseShape,
 });
 
+const IsInteriorConditionSchema = z.object({
+  type: z.literal("IsInterior"),
+  ...conditionBaseShape,
+});
+
 const IsSwimmingConditionSchema = z.object({
   type: z.literal("IsSwimming"),
   ...conditionBaseShape,
@@ -163,6 +168,7 @@ type ConditionInput =
   | z.infer<typeof IsWeaponDrawnConditionSchema>
   | z.infer<typeof IsSneakingConditionSchema>
   | z.infer<typeof IsSleepingConditionSchema>
+  | z.infer<typeof IsInteriorConditionSchema>
   | z.infer<typeof IsSwimmingConditionSchema>
   | z.infer<typeof IsFemaleConditionSchema>
   | z.infer<typeof IsRaceConditionSchema>
@@ -189,6 +195,7 @@ export const ConditionSchema: z.ZodType<ConditionInput> = z.lazy(() =>
     IsWeaponDrawnConditionSchema,
     IsSneakingConditionSchema,
     IsSleepingConditionSchema,
+    IsInteriorConditionSchema,
     IsSwimmingConditionSchema,
     IsFemaleConditionSchema,
     IsRaceConditionSchema,
@@ -285,6 +292,7 @@ export function emptyCondition(type: (typeof CONDITION_TYPES)[number]): Conditio
     case "IsWeaponDrawn":
     case "IsSneaking":
     case "IsSleeping":
+    case "IsInterior":
     case "IsSwimming":
     case "IsFemale":
       return { type };

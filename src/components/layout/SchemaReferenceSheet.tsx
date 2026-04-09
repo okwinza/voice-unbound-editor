@@ -20,6 +20,7 @@ const CONDITION_META: Record<ConditionType, { summary: string }> = {
   IsWeaponDrawn: { summary: "Passes when the player has a weapon drawn." },
   IsSneaking: { summary: "Passes when the player is sneaking." },
   IsSleeping: { summary: "Passes during sleep animations (lie-down / wake-up)." },
+  IsInterior: { summary: "Passes when the player is in an interior cell." },
   IsSwimming: { summary: "Passes when the player is swimming." },
   IsFemale: { summary: "Passes when the player character is female. Use negated for male-only." },
   IsRace: { summary: "Match the player's race by editor ID or form reference." },

@@ -186,6 +186,7 @@ describe("factories", () => {
       "IsWeaponDrawn",
       "IsSneaking",
       "IsSleeping",
+      "IsInterior",
       "IsSwimming",
       "IsFemale",
       "IsRace",

@@ -16,6 +16,7 @@ const TYPE_DESCRIPTIONS: Record<ConditionType, string> = {
   IsWeaponDrawn: "weapon is drawn",
   IsSneaking: "player sneaking",
   IsSleeping: "during sleep animations",
+  IsInterior: "player in an interior cell",
   IsSwimming: "player in water",
   IsFemale: "female player character",
   IsRace: "match race by ID or formID",
@@ -38,7 +39,7 @@ interface MenuGroup {
 const MENU_GROUPS: MenuGroup[] = [
   {
     label: "State",
-    types: ["IsInCombat", "IsWeaponDrawn", "IsSneaking", "IsSleeping", "IsSwimming"],
+    types: ["IsInCombat", "IsWeaponDrawn", "IsSneaking", "IsSleeping", "IsInterior", "IsSwimming"],
   },
   {
     label: "Character",

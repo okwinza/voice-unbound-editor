@@ -204,6 +204,7 @@ const NO_PARAM_LABELS: Partial<Record<ConditionType, string>> = {
   IsWeaponDrawn: "has a weapon drawn",
   IsSneaking: "sneaking",
   IsSleeping: "sleeping",
+  IsInterior: "in an interior cell",
   IsSwimming: "swimming",
   IsFemale: "a female character",
 };
@@ -226,6 +227,7 @@ function Editor({
     case "IsWeaponDrawn":
     case "IsSneaking":
     case "IsSleeping":
+    case "IsInterior":
     case "IsSwimming":
     case "IsFemale":
       return (
