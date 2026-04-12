@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type DragEvent } from "react";
 import { Save, RotateCcw, Play, Pause, Upload } from "lucide-react";
 import { useWorkspaceStore } from "@/stores/workspace-store";
-import { useNestedPatcher } from "@/stores/use-document-field";
+import { useNestedPatcher, useIsMultiClip } from "@/stores/use-document-field";
 import { useAudioState } from "@/stores/use-audio";
 import { AudioPlayer, probeBlobDuration } from "@/lib/audio";
 import { getHost } from "@/lib/host";
@@ -15,6 +15,7 @@ export function HeroRow({ path }: { path: string }) {
   const dirty = doc?.dirty ?? false;
   const name = basename(path);
   const folder = folderOf(path);
+  const isMultiClip = useIsMultiClip(path);
 
   return (
     <div
@@ -69,7 +70,7 @@ export function HeroRow({ path }: { path: string }) {
           Save
         </button>
       </div>
-      <AudioStrip jsonPath={path} wavPath={wavPathFor(path)} />
+      {!isMultiClip && <AudioStrip jsonPath={path} wavPath={wavPathFor(path)} />}
     </div>
   );
 }

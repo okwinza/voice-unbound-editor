@@ -3,11 +3,13 @@ import {
   useStringField,
   useNumberField,
   useBoolField,
+  useIsMultiClip,
   useNestedStringField,
   useNestedNumberField,
   useNestedBoolField,
   useNestedPatcher,
 } from "@/stores/use-document-field";
+import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
@@ -18,6 +20,7 @@ import { FlagsControl } from "@/components/form/inputs/FlagsControl";
 import { SectionHeader } from "@/components/form/SectionHeader";
 import { KNOWN_EVENTS } from "@/lib/enums";
 import { EVENT_META } from "@/lib/event-meta";
+import { cn } from "@/lib/cn";
 
 interface GeneralSectionProps {
   path: string;
@@ -27,6 +30,7 @@ export function GeneralSection({ path }: GeneralSectionProps) {
   const patchDom = useWorkspaceStore((s) => s.patchDom);
 
   const event = useStringField(path, "event", "TESHitEvent");
+  const speaker = useStringField(path, "speaker", "");
   const subtitle = useNestedStringField(path, "subtitle", "text", "");
   const subtitleDuration = useNestedNumberField(
     path,
@@ -38,6 +42,7 @@ export function GeneralSection({ path }: GeneralSectionProps) {
   const cooldown = useNumberField(path, "cooldown_seconds", 30);
   const important = useBoolField(path, "important", false);
   const exclusive = useBoolField(path, "exclusive", false);
+  const playOnce = useBoolField(path, "play_once", false);
   const lipsyncEnabled = useNestedBoolField(path, "lipsync", "enabled", true);
   // NaN fallback lets us distinguish "unset" (show "baseline" label, slider
   // sits at 1) from "explicitly set to 1" without a second subscription.
@@ -49,6 +54,8 @@ export function GeneralSection({ path }: GeneralSectionProps) {
   );
   const lipsyncIntensitySet = !Number.isNaN(lipsyncIntensityRaw);
   const lipsyncIntensity = lipsyncIntensitySet ? lipsyncIntensityRaw : 1;
+
+  const isMultiClip = useIsMultiClip(path);
 
   const patch = (fields: Record<string, unknown>) => patchDom(path, fields);
   const patchSubtitle = useNestedPatcher(path, "subtitle");
@@ -84,36 +91,99 @@ export function GeneralSection({ path }: GeneralSectionProps) {
         <EventHelp event={event} />
       </Field>
 
-      <Field label="Subtitle" htmlFor="field-subtitle">
-        <Textarea
-          id="field-subtitle"
-          value={subtitle}
-          onChange={(e) => patchSubtitle("text", e.target.value)}
-          placeholder="What the player speaks…"
-          data-testid="field-subtitle"
-        />
+      <Field label="Speaker">
+        <div className="space-y-1.5">
+          <div
+            className="inline-flex h-7 rounded-sm border border-border bg-input p-[2px]"
+            role="radiogroup"
+            aria-label="Speaker mode"
+          >
+            {(["Player", "NPC"] as const).map((m) => {
+              const isNpc = speaker.length > 0 && speaker !== "player";
+              const active = m === "NPC" ? isNpc : !isNpc;
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  onClick={() => {
+                    if (m === "Player") {
+                      patch({ speaker: undefined });
+                    } else {
+                      patch({ speaker: speaker || "Skyrim.esm|0x00000007" });
+                    }
+                  }}
+                  className={cn(
+                    "cursor-pointer rounded-sm px-2.5 text-[11px] font-medium transition-colors",
+                    active
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                  data-testid={`field-speaker-mode-${m.toLowerCase()}`}
+                >
+                  {m}
+                </button>
+              );
+            })}
+          </div>
+          {speaker.length > 0 && speaker !== "player" && (
+            <div className="w-full max-w-xs">
+              <Input
+                value={speaker}
+                onChange={(e) => patch({ speaker: e.target.value || undefined })}
+                placeholder="Skyrim.esm|0x0001A69C"
+                className="mono"
+                data-testid="field-speaker-formref"
+              />
+              <p className="mt-1 text-[10px] text-muted-foreground/70">
+                Placed Actor reference (Plugin.esp|0xFormID). Audio plays from the NPC.
+              </p>
+            </div>
+          )}
+        </div>
       </Field>
 
-      <Field label="Duration" htmlFor="field-duration">
-        <NumberWithUnit
-          id="field-duration"
-          value={subtitleDuration}
-          onChange={(v) =>
-            patchSubtitle("duration_ms", Math.max(0, Math.round(v)))
-          }
-          unit="ms"
-          min={0}
-          max={60000}
-          step={100}
-          presets={[
-            { label: "1s", value: 1000 },
-            { label: "2s", value: 2000 },
-            { label: "3s", value: 3000 },
-            { label: "5s", value: 5000 },
-          ]}
-          data-testid="field-duration"
-        />
-      </Field>
+      {isMultiClip ? (
+        <Field label="Subtitle">
+          <p className="text-[11px] text-muted-foreground/70">
+            Subtitle is per-clip — edit in the Audio section below.
+          </p>
+        </Field>
+      ) : (
+        <>
+          <Field label="Subtitle" htmlFor="field-subtitle">
+            <Textarea
+              id="field-subtitle"
+              value={subtitle}
+              onChange={(e) => patchSubtitle("text", e.target.value)}
+              placeholder="What the player speaks…"
+              data-testid="field-subtitle"
+            />
+          </Field>
+
+          <Field label="Duration" htmlFor="field-duration">
+            <NumberWithUnit
+              id="field-duration"
+              value={subtitleDuration}
+              onChange={(v) =>
+                patchSubtitle("duration_ms", Math.max(0, Math.round(v)))
+              }
+              unit="ms"
+              min={0}
+              max={60000}
+              step={100}
+              presets={[
+                { label: "1s", value: 1000 },
+                { label: "2s", value: 2000 },
+                { label: "3s", value: 3000 },
+                { label: "5s", value: 5000 },
+              ]}
+              data-testid="field-duration"
+            />
+          </Field>
+        </>
+      )}
 
       <Field label="Chance" htmlFor="field-chance">
         <div className="flex items-center gap-3 max-w-xs">
@@ -157,6 +227,22 @@ export function GeneralSection({ path }: GeneralSectionProps) {
           onImportantChange={(v) => patch({ important: v || undefined })}
           onExclusiveChange={(v) => patch({ exclusive: v || undefined })}
         />
+      </Field>
+
+      <Field label="Play once">
+        <label className="flex items-center gap-2 text-[12px]">
+          <input
+            type="checkbox"
+            checked={playOnce}
+            onChange={(e) => patch({ play_once: e.target.checked || undefined })}
+            className="h-3.5 w-3.5 accent-primary"
+            data-testid="field-play-once"
+          />
+          <span className="font-medium text-foreground">Fire once then disable</span>
+        </label>
+        <p className="mt-1 text-[10px] text-muted-foreground/70">
+          Persists in SKSE cosave — per-character isolated, resets on new game.
+        </p>
       </Field>
 
       <Field label="Lipsync">

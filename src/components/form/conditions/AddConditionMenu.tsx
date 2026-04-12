@@ -28,6 +28,24 @@ const TYPE_DESCRIPTIONS: Record<ConditionType, string> = {
   PlayerName: "match character name",
   NPCsNearby: "living NPCs within radius",
   IsLocation: "match named location / formID",
+  IsRunning: "player is running",
+  IsSprinting: "player is sprinting",
+  IsWalking: "player is walking (not running)",
+  IsBlocking: "player is blocking",
+  IsBleedingOut: "player is bleeding out",
+  IsOnMount: "player on horseback",
+  IsFlying: "vampire lord flight form",
+  IsTrespassing: "player is trespassing",
+  PlayerLevel: "check player level",
+  GoldAmount: "check gold carried",
+  TimeOfDay: "game-time hour range",
+  IsInFaction: "player in faction (formID)",
+  IsInWorldspace: "player in worldspace (formID)",
+  WeatherIs: "current weather kind",
+  IsCurrentWeather: "specific weather form active",
+  QuestStage: "quest progress by stage number",
+  QuestState: "quest running / completed / stopped",
+  EquippedWeaponType: "weapon type in hand",
   ConditionGroup: "nest with AND / OR logic",
 };
 
@@ -42,16 +60,28 @@ const MENU_GROUPS: MenuGroup[] = [
     types: ["IsInCombat", "IsWeaponDrawn", "IsSneaking", "IsSleeping", "IsInterior", "IsSwimming"],
   },
   {
+    label: "Movement",
+    types: ["IsRunning", "IsSprinting", "IsWalking", "IsBlocking", "IsBleedingOut", "IsOnMount", "IsFlying", "IsTrespassing"],
+  },
+  {
     label: "Character",
-    types: ["IsFemale", "IsRace", "PlayerName"],
+    types: ["IsFemale", "IsRace", "PlayerName", "ActorValue", "PlayerLevel", "GoldAmount"],
   },
   {
     label: "Knowledge",
     types: ["HasActiveEffect", "HasPerk", "HasSpell"],
   },
   {
+    label: "Equipment",
+    types: ["IsSlotEmpty", "EquippedWeaponType"],
+  },
+  {
+    label: "Quest",
+    types: ["QuestStage", "QuestState"],
+  },
+  {
     label: "World",
-    types: ["ActorValue", "IsSlotEmpty", "LocationHasKeyword", "IsLocation", "NPCsNearby"],
+    types: ["LocationHasKeyword", "IsLocation", "NPCsNearby", "IsInFaction", "IsInWorldspace", "WeatherIs", "IsCurrentWeather", "TimeOfDay"],
   },
   {
     label: "Logic",
@@ -70,6 +100,7 @@ interface MenuPos {
 export function AddConditionMenu({ onAdd, compact, ...rest }: AddConditionMenuProps) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<MenuPos | null>(null);
+  const [filter, setFilter] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -142,34 +173,55 @@ export function AddConditionMenu({ onAdd, compact, ...rest }: AddConditionMenuPr
           }}
           role="menu"
         >
-          {MENU_GROUPS.map((group, gi) => (
-            <div key={group.label}>
-              {gi > 0 && <div className="my-1 h-px bg-border" />}
-              <div className="px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/50">
-                {group.label}
+          <input
+            type="text"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            placeholder="Filter..."
+            className="mono mb-1 w-full rounded-sm border border-border bg-input px-2 py-1 text-[12px] text-foreground outline-none placeholder:text-muted-foreground/40 focus:border-ring"
+            autoFocus
+            data-testid="add-condition-filter"
+          />
+          {MENU_GROUPS.map((group, gi) => {
+            const lc = filter.toLowerCase();
+            const filtered = lc
+              ? group.types.filter(
+                  (t) =>
+                    t.toLowerCase().includes(lc) ||
+                    TYPE_DESCRIPTIONS[t].toLowerCase().includes(lc),
+                )
+              : group.types;
+            if (filtered.length === 0) return null;
+            return (
+              <div key={group.label}>
+                {gi > 0 && <div className="my-1 h-px bg-border" />}
+                <div className="px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground/50">
+                  {group.label}
+                </div>
+                {filtered.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      onAdd(t);
+                      setOpen(false);
+                      setFilter("");
+                    }}
+                    className="block w-full rounded-sm px-2 py-1.5 text-left text-[12px] hover:bg-accent hover:text-accent-foreground"
+                    data-testid={`add-condition-${t}`}
+                  >
+                    <span className="mono font-medium">{t}</span>
+                    {TYPE_DESCRIPTIONS[t] && (
+                      <span className="ml-2 text-[11px] text-muted-foreground">
+                        {TYPE_DESCRIPTIONS[t]}
+                      </span>
+                    )}
+                  </button>
+                ))}
               </div>
-              {group.types.map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    onAdd(t);
-                    setOpen(false);
-                  }}
-                  className="block w-full rounded-sm px-2 py-1.5 text-left text-[12px] hover:bg-accent hover:text-accent-foreground"
-                  data-testid={`add-condition-${t}`}
-                >
-                  <span className="mono font-medium">{t}</span>
-                  {TYPE_DESCRIPTIONS[t] && (
-                    <span className="ml-2 text-[11px] text-muted-foreground">
-                      {TYPE_DESCRIPTIONS[t]}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

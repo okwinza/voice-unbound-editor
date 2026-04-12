@@ -240,6 +240,24 @@ export const CONDITION_TYPES = [
   "PlayerName",
   "NPCsNearby",
   "IsLocation",
+  "IsRunning",
+  "IsSprinting",
+  "IsWalking",
+  "IsBlocking",
+  "IsBleedingOut",
+  "IsOnMount",
+  "IsFlying",
+  "IsTrespassing",
+  "PlayerLevel",
+  "GoldAmount",
+  "TimeOfDay",
+  "IsInFaction",
+  "IsInWorldspace",
+  "WeatherIs",
+  "IsCurrentWeather",
+  "QuestStage",
+  "QuestState",
+  "EquippedWeaponType",
   "ConditionGroup",
 ] as const;
 
@@ -280,6 +298,27 @@ export const SIMPLE_COMPARISONS = [
 ] as const;
 
 export type SimpleComparison = (typeof SIMPLE_COMPARISONS)[number];
+
+// ---------- Weather kinds (WeatherIs) ----------
+
+export const WEATHER_KINDS = ["raining", "snowing"] as const;
+export type WeatherKind = (typeof WEATHER_KINDS)[number];
+
+// ---------- Quest states (QuestState) ----------
+
+export const QUEST_STATES = ["running", "completed", "stopped"] as const;
+export type QuestState = (typeof QUEST_STATES)[number];
+
+// ---------- Weapon kinds (EquippedWeaponType) ----------
+
+export const WEAPON_KINDS = [
+  "unarmed", "sword", "dagger", "waraxe", "mace",
+  "greatsword", "battleaxe", "bow", "crossbow", "staff",
+] as const;
+export type WeaponKind = (typeof WEAPON_KINDS)[number];
+
+export const WEAPON_HANDS = ["right", "left"] as const;
+export type WeaponHand = (typeof WEAPON_HANDS)[number];
 
 export const CONDITION_GROUP_LOGICS = ["AND", "OR"] as const;
 
@@ -509,17 +548,22 @@ export const CANONICAL_FIELD_ORDER = [
   // Universal condition flags (right after type on every condition).
   "negated",
   "disabled",
+  "reference",
   // VoiceLine top-level fields.
   "event",
+  "speaker",
   "event_filter",
   "subtitle",            // nested { text, duration_ms }
   "chance",
   "cooldown_seconds",
   "exclusive",
   "important",
+  "play_once",
   "lipsync",             // nested { enabled, intensity }
   "suppress_subtypes",
-  // Subtitle subfields (applied inside the `subtitle` object).
+  "clips",             // multi-clip array
+  // Per-clip / subtitle subfields (applied inside clip and subtitle objects).
+  "wav",
   "text",
   "duration_ms",
   // Lipsync subfields (applied inside the `lipsync` object).
@@ -538,6 +582,12 @@ export const CANONICAL_FIELD_ORDER = [
   "location",      // IsLocation
   "radius",        // NPCsNearby
   "count",         // NPCsNearby
+  "kind",          // WeatherIs / EquippedWeaponType
+  "hand",          // EquippedWeaponType
+  "stage",         // QuestStage
+  "state",         // QuestState
+  "min",           // TimeOfDay
+  "max",           // TimeOfDay
   // Recursive: VoiceLine.conditions AND ConditionGroup.conditions both end last.
   "conditions",
 ] as const;

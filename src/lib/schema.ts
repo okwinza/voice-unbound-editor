@@ -19,6 +19,10 @@ import {
   SIMPLE_COMPARISONS,
   ARMOR_SLOTS,
   CONDITION_GROUP_LOGICS,
+  WEATHER_KINDS,
+  QUEST_STATES,
+  WEAPON_KINDS,
+  WEAPON_HANDS,
 } from "./enums";
 
 // ---------- Filter values ----------
@@ -42,6 +46,7 @@ const EventFilter = z.record(z.string(), FilterValue).optional();
 const conditionBaseShape = {
   negated: z.boolean().optional(),
   disabled: z.boolean().optional(),
+  reference: z.string().min(1).optional(),
 } as const;
 
 const ActorValueConditionSchema = z.object({
@@ -161,6 +166,97 @@ const IsLocationConditionSchema = z
     path: ["location"],
   });
 
+// --- Batch A: Movement & stance (zero-param) ---
+
+const IsRunningConditionSchema = z.object({ type: z.literal("IsRunning"), ...conditionBaseShape });
+const IsSprintingConditionSchema = z.object({ type: z.literal("IsSprinting"), ...conditionBaseShape });
+const IsWalkingConditionSchema = z.object({ type: z.literal("IsWalking"), ...conditionBaseShape });
+const IsBlockingConditionSchema = z.object({ type: z.literal("IsBlocking"), ...conditionBaseShape });
+const IsBleedingOutConditionSchema = z.object({ type: z.literal("IsBleedingOut"), ...conditionBaseShape });
+const IsOnMountConditionSchema = z.object({ type: z.literal("IsOnMount"), ...conditionBaseShape });
+const IsFlyingConditionSchema = z.object({ type: z.literal("IsFlying"), ...conditionBaseShape });
+const IsTrespassingConditionSchema = z.object({ type: z.literal("IsTrespassing"), ...conditionBaseShape });
+
+// --- Batch B: Numeric comparisons ---
+
+const PlayerLevelConditionSchema = z.object({
+  type: z.literal("PlayerLevel"),
+  ...conditionBaseShape,
+  comparison: z.enum(SIMPLE_COMPARISONS).optional(),
+  threshold: z.number().int().optional(),
+});
+
+const GoldAmountConditionSchema = z.object({
+  type: z.literal("GoldAmount"),
+  ...conditionBaseShape,
+  comparison: z.enum(SIMPLE_COMPARISONS).optional(),
+  threshold: z.number().int().optional(),
+});
+
+const TimeOfDayConditionSchema = z
+  .object({
+    type: z.literal("TimeOfDay"),
+    ...conditionBaseShape,
+    min: z.number().min(0).max(24).optional(),
+    max: z.number().min(0).max(24).optional(),
+  })
+  .refine((v) => v.min !== undefined || v.max !== undefined, {
+    message: "TimeOfDay requires at least 'min' or 'max'",
+    path: ["min"],
+  });
+
+// --- Batch C: Environment ---
+
+const IsInFactionConditionSchema = z.object({
+  type: z.literal("IsInFaction"),
+  ...conditionBaseShape,
+  formID: z.string().min(1),
+});
+
+const IsInWorldspaceConditionSchema = z.object({
+  type: z.literal("IsInWorldspace"),
+  ...conditionBaseShape,
+  formID: z.string().min(1),
+});
+
+const WeatherIsConditionSchema = z.object({
+  type: z.literal("WeatherIs"),
+  ...conditionBaseShape,
+  kind: z.enum(WEATHER_KINDS),
+});
+
+const IsCurrentWeatherConditionSchema = z.object({
+  type: z.literal("IsCurrentWeather"),
+  ...conditionBaseShape,
+  formID: z.string().min(1),
+});
+
+// --- Batch D: Quest state ---
+
+const QuestStageConditionSchema = z.object({
+  type: z.literal("QuestStage"),
+  ...conditionBaseShape,
+  formID: z.string().min(1),
+  comparison: z.enum(SIMPLE_COMPARISONS).optional(),
+  stage: z.number().int().min(0).max(65535).optional(),
+});
+
+const QuestStateConditionSchema = z.object({
+  type: z.literal("QuestState"),
+  ...conditionBaseShape,
+  formID: z.string().min(1),
+  state: z.enum(QUEST_STATES),
+});
+
+// --- Batch E: Equipment ---
+
+const EquippedWeaponTypeConditionSchema = z.object({
+  type: z.literal("EquippedWeaponType"),
+  ...conditionBaseShape,
+  kind: z.enum(WEAPON_KINDS),
+  hand: z.enum(WEAPON_HANDS).optional(),
+});
+
 // ConditionGroup is recursive. Zod needs a lazy ref for that.
 type ConditionInput =
   | z.infer<typeof ActorValueConditionSchema>
@@ -180,10 +276,29 @@ type ConditionInput =
   | z.infer<typeof PlayerNameConditionSchema>
   | z.infer<typeof NPCsNearbyConditionSchema>
   | z.infer<typeof IsLocationConditionSchema>
+  | z.infer<typeof IsRunningConditionSchema>
+  | z.infer<typeof IsSprintingConditionSchema>
+  | z.infer<typeof IsWalkingConditionSchema>
+  | z.infer<typeof IsBlockingConditionSchema>
+  | z.infer<typeof IsBleedingOutConditionSchema>
+  | z.infer<typeof IsOnMountConditionSchema>
+  | z.infer<typeof IsFlyingConditionSchema>
+  | z.infer<typeof IsTrespassingConditionSchema>
+  | z.infer<typeof PlayerLevelConditionSchema>
+  | z.infer<typeof GoldAmountConditionSchema>
+  | z.infer<typeof TimeOfDayConditionSchema>
+  | z.infer<typeof IsInFactionConditionSchema>
+  | z.infer<typeof IsInWorldspaceConditionSchema>
+  | z.infer<typeof WeatherIsConditionSchema>
+  | z.infer<typeof IsCurrentWeatherConditionSchema>
+  | z.infer<typeof QuestStageConditionSchema>
+  | z.infer<typeof QuestStateConditionSchema>
+  | z.infer<typeof EquippedWeaponTypeConditionSchema>
   | {
       type: "ConditionGroup";
       negated?: boolean;
       disabled?: boolean;
+      reference?: string;
       logic?: "AND" | "OR";
       conditions?: ConditionInput[];
     };
@@ -207,6 +322,24 @@ export const ConditionSchema: z.ZodType<ConditionInput> = z.lazy(() =>
     PlayerNameConditionSchema,
     NPCsNearbyConditionSchema,
     IsLocationConditionSchema,
+    IsRunningConditionSchema,
+    IsSprintingConditionSchema,
+    IsWalkingConditionSchema,
+    IsBlockingConditionSchema,
+    IsBleedingOutConditionSchema,
+    IsOnMountConditionSchema,
+    IsFlyingConditionSchema,
+    IsTrespassingConditionSchema,
+    PlayerLevelConditionSchema,
+    GoldAmountConditionSchema,
+    TimeOfDayConditionSchema,
+    IsInFactionConditionSchema,
+    IsInWorldspaceConditionSchema,
+    WeatherIsConditionSchema,
+    IsCurrentWeatherConditionSchema,
+    QuestStageConditionSchema,
+    QuestStateConditionSchema,
+    EquippedWeaponTypeConditionSchema,
     z.object({
       type: z.literal("ConditionGroup"),
       ...conditionBaseShape,
@@ -241,18 +374,31 @@ const LipsyncSchema = z
   })
   .optional();
 
+// ---------- Clip (multi-clip voice lines) ----------
+
+const ClipSchema = z.object({
+  wav: z.string().optional(),
+  subtitle: SubtitleSchema,
+  lipsync: LipsyncSchema,
+});
+
+export type Clip = z.infer<typeof ClipSchema>;
+
 // ---------- VoiceLine (top-level) ----------
 
 export const VoiceLineSchema = z.object({
   event: z.enum(KNOWN_EVENTS),
+  speaker: z.string().min(1).optional(),
   event_filter: EventFilter,
   subtitle: SubtitleSchema,
   chance: z.number().min(0).max(1).optional(),
   cooldown_seconds: z.number().min(0).optional(),
   exclusive: z.boolean().optional(),
   important: z.boolean().optional(),
+  play_once: z.boolean().optional(),
   lipsync: LipsyncSchema,
   suppress_subtypes: z.array(z.number().int().min(0).max(65535)).optional(),
+  clips: z.array(ClipSchema).min(1).optional(),
   conditions: z.array(ConditionSchema).optional(),
 });
 
@@ -284,6 +430,10 @@ export function emptyVoiceLine(event: (typeof KNOWN_EVENTS)[number] = "TESHitEve
   };
 }
 
+export function emptyClip(): Clip {
+  return { subtitle: { text: "", duration_ms: 3000 } };
+}
+
 export function emptyCondition(type: (typeof CONDITION_TYPES)[number]): Condition {
   switch (type) {
     case "ActorValue":
@@ -295,6 +445,14 @@ export function emptyCondition(type: (typeof CONDITION_TYPES)[number]): Conditio
     case "IsInterior":
     case "IsSwimming":
     case "IsFemale":
+    case "IsRunning":
+    case "IsSprinting":
+    case "IsWalking":
+    case "IsBlocking":
+    case "IsBleedingOut":
+    case "IsOnMount":
+    case "IsFlying":
+    case "IsTrespassing":
       return { type };
     case "IsRace":
       return { type, race: "NordRace" };
@@ -314,7 +472,29 @@ export function emptyCondition(type: (typeof CONDITION_TYPES)[number]): Conditio
       return { type, radius: 2048, comparison: "greaterOrEqual", count: 1 };
     case "IsLocation":
       return { type, location: "WhiterunLocation" };
+    case "PlayerLevel":
+      return { type, comparison: "greaterOrEqual", threshold: 10 };
+    case "GoldAmount":
+      return { type, comparison: "greaterOrEqual", threshold: 100 };
+    case "TimeOfDay":
+      return { type, min: 6, max: 22 };
+    case "IsInFaction":
+    case "IsInWorldspace":
+    case "IsCurrentWeather":
+      return { type, formID: "" };
+    case "QuestStage":
+      return { type, formID: "" };
+    case "QuestState":
+      return { type, formID: "", state: "running" };
+    case "WeatherIs":
+      return { type, kind: "raining" };
+    case "EquippedWeaponType":
+      return { type, kind: "sword" };
     case "ConditionGroup":
       return { type, logic: "AND", conditions: [] };
+    default: {
+      const _exhaustive: never = type;
+      throw new Error(`No factory for condition type: ${_exhaustive}`);
+    }
   }
 }

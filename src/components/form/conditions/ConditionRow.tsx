@@ -11,6 +11,10 @@ import {
   COMMON_LOCATION_EDITOR_IDS,
   COMMON_MAGIC_EFFECT_KEYWORDS,
   COMMON_RACE_EDITOR_IDS,
+  WEATHER_KINDS,
+  QUEST_STATES,
+  WEAPON_KINDS,
+  WEAPON_HANDS,
   type ArmorSlot,
   type ConditionType,
   type ActorValueComparison,
@@ -207,6 +211,14 @@ const NO_PARAM_LABELS: Partial<Record<ConditionType, string>> = {
   IsInterior: "in an interior cell",
   IsSwimming: "swimming",
   IsFemale: "a female character",
+  IsRunning: "running",
+  IsSprinting: "sprinting",
+  IsWalking: "walking",
+  IsBlocking: "blocking",
+  IsBleedingOut: "bleeding out",
+  IsOnMount: "mounted",
+  IsFlying: "flying (vampire lord)",
+  IsTrespassing: "trespassing",
 };
 
 // ---------- Editor switch ----------
@@ -230,6 +242,14 @@ function Editor({
     case "IsInterior":
     case "IsSwimming":
     case "IsFemale":
+    case "IsRunning":
+    case "IsSprinting":
+    case "IsWalking":
+    case "IsBlocking":
+    case "IsBleedingOut":
+    case "IsOnMount":
+    case "IsFlying":
+    case "IsTrespassing":
       return (
         <p className="text-[12px] text-muted-foreground/70">
           No parameters — passes when the player is{" "}
@@ -320,9 +340,9 @@ function Editor({
                 aria-checked={mode === m}
                 onClick={() => {
                   if (m === "race") {
-                    onChange({ type: "IsRace", race: condition.race || "NordRace" });
+                    onChange({ ...condition, race: condition.race || "NordRace", formID: undefined });
                   } else {
-                    onChange({ type: "IsRace", formID: condition.formID || "" });
+                    onChange({ ...condition, formID: condition.formID || "", race: undefined });
                   }
                 }}
                 className={cn(
@@ -343,7 +363,7 @@ function Editor({
                 list={`${testId}-races`}
                 value={condition.race ?? ""}
                 onChange={(e) =>
-                  onChange({ type: "IsRace", race: e.target.value })
+                  onChange({ ...condition, race: e.target.value })
                 }
                 placeholder="NordRace"
                 data-testid={`${testId}-race`}
@@ -359,7 +379,7 @@ function Editor({
               <Input
                 value={condition.formID ?? ""}
                 onChange={(e) =>
-                  onChange({ type: "IsRace", formID: e.target.value })
+                  onChange({ ...condition, formID: e.target.value })
                 }
                 placeholder="Skyrim.esm|0x00013746"
                 data-testid={`${testId}-formid`}
@@ -389,9 +409,9 @@ function Editor({
                 aria-checked={mode === m}
                 onClick={() => {
                   if (m === "keyword") {
-                    onChange({ type: "HasActiveEffect", keyword: condition.keyword || "MagicDamageHealth" });
+                    onChange({ ...condition, keyword: condition.keyword || "MagicDamageHealth", formID: undefined });
                   } else {
-                    onChange({ type: "HasActiveEffect", formID: condition.formID || "" });
+                    onChange({ ...condition, formID: condition.formID || "", keyword: undefined });
                   }
                 }}
                 className={cn(
@@ -412,7 +432,7 @@ function Editor({
                 list={`${testId}-keywords`}
                 value={condition.keyword ?? ""}
                 onChange={(e) =>
-                  onChange({ type: "HasActiveEffect", keyword: e.target.value })
+                  onChange({ ...condition, keyword: e.target.value })
                 }
                 placeholder="MagicDamageHealth"
                 data-testid={`${testId}-keyword`}
@@ -428,7 +448,7 @@ function Editor({
               <Input
                 value={condition.formID ?? ""}
                 onChange={(e) =>
-                  onChange({ type: "HasActiveEffect", formID: e.target.value })
+                  onChange({ ...condition, formID: e.target.value })
                 }
                 placeholder="Skyrim.esm|0x00012345"
                 data-testid={`${testId}-formid`}
@@ -442,6 +462,9 @@ function Editor({
 
     case "HasPerk":
     case "HasSpell":
+    case "IsInFaction":
+    case "IsInWorldspace":
+    case "IsCurrentWeather":
       return (
         <div className="w-full max-w-xs" data-testid={testId}>
           <Input
@@ -464,7 +487,7 @@ function Editor({
         <BodySlotPicker
           slots={(condition.slots ?? []) as readonly ArmorSlot[]}
           onChange={(next) =>
-            onChange({ type: "IsSlotEmpty", slots: next.length > 0 ? next : undefined })
+            onChange({ ...condition, slots: next.length > 0 ? next : undefined })
           }
           data-testid={testId}
         />
@@ -477,7 +500,7 @@ function Editor({
             list={`${testId}-keywords`}
             value={condition.keyword}
             onChange={(e) =>
-              onChange({ type: "LocationHasKeyword", keyword: e.target.value })
+              onChange({ ...condition, keyword: e.target.value })
             }
             placeholder="LocTypeDungeon"
             data-testid={`${testId}-keyword`}
@@ -525,9 +548,9 @@ function Editor({
                 aria-checked={mode === m}
                 onClick={() => {
                   if (m === "location") {
-                    onChange({ type: "IsLocation", location: condition.location || "WhiterunLocation" });
+                    onChange({ ...condition, location: condition.location || "WhiterunLocation", formID: undefined });
                   } else {
-                    onChange({ type: "IsLocation", formID: condition.formID || "" });
+                    onChange({ ...condition, formID: condition.formID || "", location: undefined });
                   }
                 }}
                 className={cn(
@@ -548,7 +571,7 @@ function Editor({
                 list={`${testId}-locations`}
                 value={condition.location ?? ""}
                 onChange={(e) =>
-                  onChange({ type: "IsLocation", location: e.target.value })
+                  onChange({ ...condition, location: e.target.value })
                 }
                 placeholder="WhiterunLocation"
                 data-testid={`${testId}-location`}
@@ -564,7 +587,7 @@ function Editor({
               <Input
                 value={condition.formID ?? ""}
                 onChange={(e) =>
-                  onChange({ type: "IsLocation", formID: e.target.value })
+                  onChange({ ...condition, formID: e.target.value })
                 }
                 placeholder="Skyrim.esm|0x00018A56"
                 data-testid={`${testId}-formid`}
@@ -633,9 +656,232 @@ function Editor({
       );
     }
 
+    case "PlayerLevel":
+    case "GoldAmount": {
+      const label = condition.type === "PlayerLevel" ? "level" : "gold";
+      return (
+        <div className="flex flex-wrap items-center gap-1.5" data-testid={testId}>
+          <div className="w-24">
+            <Select
+              value={condition.comparison ?? "greaterOrEqual"}
+              onChange={(e) =>
+                onChange({ ...condition, comparison: e.target.value as typeof condition.comparison })
+              }
+              data-testid={`${testId}-comparison`}
+            >
+              {SIMPLE_COMPARISONS.map((c) => (
+                <option key={c} value={c}>{COMPARISON_LABELS[c]}</option>
+              ))}
+            </Select>
+          </div>
+          <div className="w-24">
+            <Input
+              type="number"
+              value={Number.isFinite(condition.threshold) ? condition.threshold : 0}
+              onChange={(e) =>
+                onChange({ ...condition, threshold: parseInt(e.target.value, 10) || 0 })
+              }
+              step={1}
+              min={0}
+              data-testid={`${testId}-threshold`}
+            />
+          </div>
+          <span className="text-[11px] text-muted-foreground">{label}</span>
+        </div>
+      );
+    }
+
+    case "TimeOfDay": {
+      const minH = condition.min ?? 0;
+      const maxH = condition.max ?? 24;
+      const hint =
+        minH === maxH
+          ? "Zero-width range \u2014 will never match"
+          : minH < maxH
+            ? `Active from ${minH}:00 to ${maxH}:00`
+            : `Active from ${minH}:00 to ${maxH}:00 (overnight wraparound)`;
+      return (
+        <div className="space-y-1" data-testid={testId}>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[11px] text-muted-foreground">from</span>
+            <div className="relative w-20">
+              <Input
+                type="number"
+                value={condition.min ?? ""}
+                onChange={(e) =>
+                  onChange({ ...condition, min: e.target.value === "" ? undefined : parseFloat(e.target.value) })
+                }
+                step={1}
+                min={0}
+                max={24}
+                className="pr-5"
+                data-testid={`${testId}-min`}
+              />
+              <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[11px] text-muted-foreground">h</span>
+            </div>
+            <span className="text-[11px] text-muted-foreground">to</span>
+            <div className="relative w-20">
+              <Input
+                type="number"
+                value={condition.max ?? ""}
+                onChange={(e) =>
+                  onChange({ ...condition, max: e.target.value === "" ? undefined : parseFloat(e.target.value) })
+                }
+                step={1}
+                min={0}
+                max={24}
+                className="pr-5"
+                data-testid={`${testId}-max`}
+              />
+              <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[11px] text-muted-foreground">h</span>
+            </div>
+          </div>
+          <p className="text-[11px] text-muted-foreground/60">{hint}</p>
+        </div>
+      );
+    }
+
+    case "WeatherIs":
+      return (
+        <div className="w-40" data-testid={testId}>
+          <Select
+            value={condition.kind}
+            onChange={(e) =>
+              onChange({ ...condition, kind: e.target.value as typeof condition.kind })
+            }
+            data-testid={`${testId}-kind`}
+          >
+            {WEATHER_KINDS.map((k) => (
+              <option key={k} value={k}>{k}</option>
+            ))}
+          </Select>
+        </div>
+      );
+
+    case "QuestStage":
+      return (
+        <div className="flex flex-wrap items-center gap-1.5" data-testid={testId}>
+          <div className="w-52">
+            <Input
+              value={condition.formID}
+              onChange={(e) => onChange({ ...condition, formID: e.target.value })}
+              placeholder="Skyrim.esm|0x000QUEST"
+              data-testid={`${testId}-formid`}
+              className="mono"
+            />
+          </div>
+          <div className="w-24">
+            <Select
+              value={condition.comparison ?? "greaterOrEqual"}
+              onChange={(e) =>
+                onChange({ ...condition, comparison: e.target.value as typeof condition.comparison })
+              }
+              data-testid={`${testId}-comparison`}
+            >
+              {SIMPLE_COMPARISONS.map((c) => (
+                <option key={c} value={c}>{COMPARISON_LABELS[c]}</option>
+              ))}
+            </Select>
+          </div>
+          <div className="w-20">
+            <Input
+              type="number"
+              value={Number.isFinite(condition.stage) ? condition.stage : 0}
+              onChange={(e) =>
+                onChange({ ...condition, stage: parseInt(e.target.value, 10) || 0 })
+              }
+              step={1}
+              min={0}
+              max={65535}
+              data-testid={`${testId}-stage`}
+            />
+          </div>
+          <span className="text-[11px] text-muted-foreground">stage</span>
+        </div>
+      );
+
+    case "QuestState":
+      return (
+        <div className="flex flex-wrap items-center gap-1.5" data-testid={testId}>
+          <div className="w-52">
+            <Input
+              value={condition.formID}
+              onChange={(e) => onChange({ ...condition, formID: e.target.value })}
+              placeholder="Skyrim.esm|0x000QUEST"
+              data-testid={`${testId}-formid`}
+              className="mono"
+            />
+          </div>
+          <div className="w-32">
+            <Select
+              value={condition.state}
+              onChange={(e) =>
+                onChange({ ...condition, state: e.target.value as typeof condition.state })
+              }
+              data-testid={`${testId}-state`}
+            >
+              {QUEST_STATES.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </Select>
+          </div>
+        </div>
+      );
+
+    case "EquippedWeaponType": {
+      return (
+        <div className="flex flex-wrap items-center gap-1.5" data-testid={testId}>
+          <div className="w-40">
+            <Select
+              value={condition.kind}
+              onChange={(e) =>
+                onChange({ ...condition, kind: e.target.value as typeof condition.kind })
+              }
+              data-testid={`${testId}-kind`}
+            >
+              {WEAPON_KINDS.map((k) => (
+                <option key={k} value={k}>{k}</option>
+              ))}
+            </Select>
+          </div>
+          <div
+            className="inline-flex h-7 rounded-sm border border-border bg-input p-[2px]"
+            role="radiogroup"
+            aria-label="Hand"
+          >
+            {WEAPON_HANDS.map((h) => (
+              <button
+                key={h}
+                type="button"
+                role="radio"
+                aria-checked={(condition.hand ?? "right") === h}
+                onClick={() => onChange({ ...condition, hand: h === "right" ? undefined : h })}
+                className={cn(
+                  "mono cursor-pointer rounded-sm px-2 text-[11px] transition-colors",
+                  (condition.hand ?? "right") === h
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+                data-testid={`${testId}-hand-${h}`}
+              >
+                {h}
+              </button>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
     case "ConditionGroup":
       // Groups are rendered by ConditionGroupRow — unreachable here.
       return null;
+
+    default:
+      return (
+        <p className="text-[11px] text-destructive">
+          Unknown condition type: {(condition as { type: string }).type}
+        </p>
+      );
   }
 }
 

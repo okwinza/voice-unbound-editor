@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { VoiceLineSchema, emptyVoiceLine, emptyCondition } from "../schema";
+import { VoiceLineSchema, emptyVoiceLine, emptyCondition, emptyClip } from "../schema";
 import { OKW_LOW_HP_01 } from "./fixtures";
 
 describe("VoiceLineSchema", () => {
@@ -79,12 +79,63 @@ describe("VoiceLineSchema", () => {
     expect(result.success).toBe(true);
   });
 
+  it("rejects TimeOfDay with neither min nor max", () => {
+    expect(
+      VoiceLineSchema.safeParse({
+        event: "TESHitEvent",
+        conditions: [{ type: "TimeOfDay" }],
+      }).success,
+    ).toBe(false);
+  });
+
+  it("rejects WeatherIs without kind", () => {
+    expect(
+      VoiceLineSchema.safeParse({
+        event: "TESHitEvent",
+        conditions: [{ type: "WeatherIs" }],
+      }).success,
+    ).toBe(false);
+  });
+
+  it("rejects QuestStage without formID", () => {
+    expect(
+      VoiceLineSchema.safeParse({
+        event: "TESHitEvent",
+        conditions: [{ type: "QuestStage" }],
+      }).success,
+    ).toBe(false);
+  });
+
+  it("rejects EquippedWeaponType without kind", () => {
+    expect(
+      VoiceLineSchema.safeParse({
+        event: "TESHitEvent",
+        conditions: [{ type: "EquippedWeaponType" }],
+      }).success,
+    ).toBe(false);
+  });
+
   it("accepts HasActiveEffect with keyword only", () => {
     const result = VoiceLineSchema.safeParse({
       event: "TESHitEvent",
       conditions: [{ type: "HasActiveEffect", keyword: "MagicDamageFire" }],
     });
     expect(result.success).toBe(true);
+  });
+
+  it("accepts play_once boolean", () => {
+    expect(
+      VoiceLineSchema.safeParse({ event: "TESHitEvent", play_once: true }).success,
+    ).toBe(true);
+    expect(
+      VoiceLineSchema.safeParse({ event: "TESHitEvent", play_once: false }).success,
+    ).toBe(true);
+  });
+
+  it("rejects play_once non-boolean", () => {
+    expect(
+      VoiceLineSchema.safeParse({ event: "TESHitEvent", play_once: "yes" }).success,
+    ).toBe(false);
   });
 
   it("accepts suppress_subtypes as uint16 array", () => {
@@ -122,6 +173,66 @@ describe("VoiceLineSchema", () => {
         suppress_subtypes: [1.5],
       }).success,
     ).toBe(false);
+  });
+
+  it("accepts clips array with wav", () => {
+    expect(
+      VoiceLineSchema.safeParse({
+        event: "periodic",
+        clips: [{ wav: "intro.wav" }],
+      }).success,
+    ).toBe(true);
+  });
+
+  it("accepts clips array with subtitle only (silent clip)", () => {
+    expect(
+      VoiceLineSchema.safeParse({
+        event: "periodic",
+        clips: [{ subtitle: { text: "Hello" } }],
+      }).success,
+    ).toBe(true);
+  });
+
+  it("rejects empty clips array", () => {
+    expect(
+      VoiceLineSchema.safeParse({
+        event: "periodic",
+        clips: [],
+      }).success,
+    ).toBe(false);
+  });
+
+  it("accepts speaker as form-ref string", () => {
+    expect(
+      VoiceLineSchema.safeParse({
+        event: "TESHitEvent",
+        speaker: "Skyrim.esm|0x0001A69C",
+      }).success,
+    ).toBe(true);
+  });
+
+  it("rejects empty speaker string", () => {
+    expect(
+      VoiceLineSchema.safeParse({
+        event: "TESHitEvent",
+        speaker: "",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("accepts condition with reference field", () => {
+    expect(
+      VoiceLineSchema.safeParse({
+        event: "TESHitEvent",
+        conditions: [{ type: "IsInCombat", reference: "speaker" }],
+      }).success,
+    ).toBe(true);
+    expect(
+      VoiceLineSchema.safeParse({
+        event: "TESHitEvent",
+        conditions: [{ type: "IsInCombat", reference: "aggressor" }],
+      }).success,
+    ).toBe(true);
   });
 
   it("accepts filter values as string or array", () => {
@@ -167,6 +278,15 @@ describe("VoiceLineSchema", () => {
 });
 
 describe("factories", () => {
+  it("emptyClip produces valid ClipSchema output", () => {
+    const clip = emptyClip();
+    const result = VoiceLineSchema.safeParse({
+      event: "periodic",
+      clips: [clip],
+    });
+    expect(result.success).toBe(true);
+  });
+
   it("emptyVoiceLine defaults to TESHitEvent with sane values", () => {
     const line = emptyVoiceLine();
     expect(line.event).toBe("TESHitEvent");
@@ -180,6 +300,7 @@ describe("factories", () => {
     // HasPerk, HasSpell, PlayerName are excluded — their factories return
     // intentionally empty placeholders (formID:"", name:"") that fail min(1)
     // validation until the user fills them in.
+    // Same for IsInFaction, IsInWorldspace, IsCurrentWeather, QuestStage, QuestState.
     for (const type of [
       "ActorValue",
       "IsInCombat",
@@ -195,6 +316,19 @@ describe("factories", () => {
       "LocationHasKeyword",
       "NPCsNearby",
       "IsLocation",
+      "IsRunning",
+      "IsSprinting",
+      "IsWalking",
+      "IsBlocking",
+      "IsBleedingOut",
+      "IsOnMount",
+      "IsFlying",
+      "IsTrespassing",
+      "PlayerLevel",
+      "GoldAmount",
+      "TimeOfDay",
+      "WeatherIs",
+      "EquippedWeaponType",
       "ConditionGroup",
     ] as const) {
       const cond = emptyCondition(type);

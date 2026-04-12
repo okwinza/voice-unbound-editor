@@ -44,6 +44,12 @@ export function useNumberArrayField(path: string | null, key: string): number[] 
   return v.filter((n): n is number => typeof n === "number");
 }
 
+export function useIsMultiClip(path: string | null): boolean {
+  const dom = useDom(path);
+  const c = dom?.clips;
+  return Array.isArray(c) && (c as unknown[]).length > 0;
+}
+
 // ---------- Nested-object field readers ----------
 // Read a child field off a top-level object (e.g. subtitle.text, lipsync.enabled).
 

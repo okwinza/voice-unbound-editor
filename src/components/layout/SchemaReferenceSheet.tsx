@@ -50,6 +50,24 @@ const CONDITION_META: Record<ConditionType, { summary: string }> = {
     summary:
       "Matches the player's current BGSLocation by editor ID or form reference. Traverses the parent-location chain.",
   },
+  IsRunning: { summary: "Passes when the player is running." },
+  IsSprinting: { summary: "Passes when the player is sprinting." },
+  IsWalking: { summary: "Passes when the player is walking (not running or sprinting)." },
+  IsBlocking: { summary: "Passes when the player is blocking with a shield or weapon." },
+  IsBleedingOut: { summary: "Passes when the player is in bleedout (downed)." },
+  IsOnMount: { summary: "Passes when the player is mounted on a horse." },
+  IsFlying: { summary: "Passes when the player is in Vampire Lord flight form." },
+  IsTrespassing: { summary: "Passes when the player is trespassing in an owned area." },
+  PlayerLevel: { summary: "Compare the player's level via comparison operators (>=, ==, <, etc.)." },
+  GoldAmount: { summary: "Compare the player's carried gold via comparison operators." },
+  TimeOfDay: { summary: "Check the current game-time hour. Supports min/max range including overnight wraparound (e.g. 22\u21925)." },
+  IsInFaction: { summary: "Passes when the player belongs to the specified faction (by formID)." },
+  IsInWorldspace: { summary: "Passes when the player is in the specified worldspace (by formID)." },
+  WeatherIs: { summary: "Passes when the current weather matches a kind (raining or snowing)." },
+  IsCurrentWeather: { summary: "Passes when a specific weather form is active (by formID)." },
+  QuestStage: { summary: "Check a quest's current stage number via comparison operators. Requires quest formID." },
+  QuestState: { summary: "Check whether a quest is running, completed, or stopped. Requires quest formID." },
+  EquippedWeaponType: { summary: "Check the type of weapon equipped (sword, bow, dagger, etc.) and optionally which hand." },
   ConditionGroup: {
     summary:
       "Recursive AND/OR combinator. Nests child conditions arbitrarily deep. Supports negated (NAND/NOR).",
@@ -108,6 +126,27 @@ export function SchemaReferenceSheet() {
           </ul>
         </Section>
 
+        <Section title="Speaker">
+          <div className="px-3 py-1.5 text-[10px] text-muted-foreground/80 space-y-1.5">
+            <p>
+              Default: <span className="mono font-medium text-foreground">player</span> (omit the field).
+              Set <span className="mono font-medium text-foreground">speaker</span> to a placed Actor
+              form ref (<span className="mono">Plugin.esm|0xFormID</span>) for NPC-spoken lines.
+            </p>
+            <p>
+              Audio plays spatially from the NPC, subtitles prefix the NPC name,
+              and lip-sync writes to the NPC face. A 12-gate eligibility check
+              runs before dispatch.
+            </p>
+            <p>
+              Conditions gain a <span className="mono font-medium text-foreground">reference</span> base
+              field (<span className="mono">player</span>, <span className="mono">speaker</span>, or an
+              event-context key like <span className="mono">aggressor</span>) to evaluate against
+              different actors.
+            </p>
+          </div>
+        </Section>
+
         <Section title="Dispatch routing">
           <p className="mb-2 text-[10px] text-muted-foreground/80">
             `important` and `exclusive` are independent flags. Both can be
@@ -133,6 +172,11 @@ export function SchemaReferenceSheet() {
               </li>
             ))}
           </ul>
+          <p className="mt-2 px-2 text-[10px] text-muted-foreground/80">
+            <span className="mono font-medium text-foreground">play_once</span>{" "}
+            lines fire at most once per character regardless of dispatch routing.
+            State persists in the SKSE cosave — per-character isolated, resets on new game.
+          </p>
         </Section>
 
         <Section title="Condition types">
